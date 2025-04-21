@@ -60,15 +60,18 @@ http://localhost:8000
    - Ürün Analizi
    - Tedarikçi Analizi
    - Ülke Analizi
+     
      ![2025-04-21_21-52-53](https://github.com/user-attachments/assets/6ce5291e-62ab-42ed-8ec9-20c11d1f33d4)
 
 2. Her analiz için:
    - Kaydırma çubuğu ile minimum örnek sayısını ayarlayın
    - "Analiz Et" butonuna tıklayın
    - Sonuçları görselleştirmeler ve tablolar halinde inceleyin
-![2025-04-21_21-53-23](https://github.com/user-attachments/assets/dce3ecf8-45ae-4aff-a330-2ce2aa151270)
+     
+   ![2025-04-21_21-53-23](https://github.com/user-attachments/assets/dce3ecf8-45ae-4aff-a330-2ce2aa151270)
+   
 
-![2025-04-21_21-53-54](https://github.com/user-attachments/assets/cfbd5691-ba4c-4a1c-877a-f847fcd56019)
+   ![2025-04-21_21-53-54](https://github.com/user-attachments/assets/cfbd5691-ba4c-4a1c-877a-f847fcd56019)
 
 
 ### API Endpoints
