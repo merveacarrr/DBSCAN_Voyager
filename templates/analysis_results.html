@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        .visualization-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            height: 600px;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .stats-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .table-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table th {
+            background-color: #f8f9fa;
+        }
+        .cluster-info {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .cluster-info h6 {
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>
+                Market Analiz API
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            {{ title }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Genel İstatistikler -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h6>Toplam Sayı</h6>
+                                    <p class="mb-0">{{ result.total_products if 'total_products' in result else result.total_suppliers if 'total_suppliers' in result else result.total_countries }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h6>Aykırı Değer Sayısı</h6>
+                                    <p class="mb-0">{{ result.outlier_count }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stats-card">
+                                    <h6>Küme Sayısı</h6>
+                                    <p class="mb-0">{{ (result.cluster_distribution|length) - 1 }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Küme Dağılımı ve İstatistikleri -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="table-container">
+                                    <h6>Küme Dağılımı ve İstatistikleri</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Küme</th>
+                                                    <th>Üye Sayısı</th>
+                                                    {% if 'total_products' in result %}
+                                                    <th>Ortalama Fiyat</th>
+                                                    <th>Ortalama Sipariş Sıklığı</th>
+                                                    {% elif 'total_suppliers' in result %}
+                                                    <th>Ortalama Ürün Sayısı</th>
+                                                    <th>Toplam Gelir</th>
+                                                    {% else %}
+                                                    <th>Toplam Sipariş</th>
+                                                    <th>Ortalama Sipariş Değeri</th>
+                                                    {% endif %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for cluster, stats in result.cluster_statistics.items() %}
+                                                <tr>
+                                                    <td>{{ cluster }}</td>
+                                                    <td>{{ result.cluster_distribution[cluster] }}</td>
+                                                    {% if 'total_products' in result %}
+                                                    <td>{{ stats['avg_price']['mean']|round(2) }}</td>
+                                                    <td>{{ stats['order_frequency']['mean']|round(2) }}</td>
+                                                    {% elif 'total_suppliers' in result %}
+                                                    <td>{{ stats['product_count']['mean']|round(2) }}</td>
+                                                    <td>{{ stats['total_revenue']|round(2) }}</td>
+                                                    {% else %}
+                                                    <td>{{ stats['total_orders']['mean']|round(2) }}</td>
+                                                    <td>{{ stats['total_revenue']|round(2) }}</td>
+                                                    {% endif %}
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aykırı Değerler -->
+                        {% if result.outlier_count > 0 %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="table-container">
+                                    <h6>Aykırı Değerler</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    {% if 'total_products' in result %}
+                                                    <th>Ürün ID</th>
+                                                    <th>Ürün Adı</th>
+                                                    <th>Ortalama Fiyat</th>
+                                                    <th>Sipariş Sıklığı</th>
+                                                    {% elif 'total_suppliers' in result %}
+                                                    <th>Tedarikçi ID</th>
+                                                    <th>Şirket Adı</th>
+                                                    <th>Ülke</th>
+                                                    <th>Toplam Gelir</th>
+                                                    {% else %}
+                                                    <th>Ülke</th>
+                                                    <th>Toplam Sipariş</th>
+                                                    <th>Toplam Gelir</th>
+                                                    {% endif %}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in result.outlier_products if 'total_products' in result %}
+                                                <tr>
+                                                    <td>{{ item.product_id }}</td>
+                                                    <td>{{ item.product_name }}</td>
+                                                    <td>{{ item.avg_price|round(2) }}</td>
+                                                    <td>{{ item.order_frequency }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                                {% for item in result.outlier_suppliers if 'total_suppliers' in result %}
+                                                <tr>
+                                                    <td>{{ item.supplier_id }}</td>
+                                                    <td>{{ item.company_name }}</td>
+                                                    <td>{{ item.country }}</td>
+                                                    <td>{{ item.total_revenue|round(2) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                                {% for item in result.outlier_countries if 'total_countries' in result %}
+                                                <tr>
+                                                    <td>{{ item.country }}</td>
+                                                    <td>{{ item.total_orders }}</td>
+                                                    <td>{{ item.total_revenue|round(2) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Görselleştirmeler -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="visualization-container">
+                                    <iframe src="{{ result.visualizations.scatter_plot }}"></iframe>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="visualization-container">
+                                    <iframe src="{{ result.visualizations.box_plot }}"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="visualization-container">
+                                    <iframe src="{{ result.visualizations.plot_3d }}"></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
